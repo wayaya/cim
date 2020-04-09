@@ -268,4 +268,35 @@ java -jar cim-client-1.0.0-SNAPSHOT.jar --server.port=8084 --cim.user.id=上方�
 ![](https://ws1.sinaimg.cn/large/006tKfTcly1ftmfdo6mhmj30760760t7.jpg)
 
 
+### wayaya
+```shell
+# im-server
+shell> java -jar cim-server-1.0.0-SNAPSHOT.jar --app.zk.addr=localhost --spring.redis.host=localhost --spring.redis.port=6379 > log.log 2>&1 
+# im-router
+shell> java -jar cim-forward-route-1.0.0-SNAPSHOT.jar --app.zk.addr=localhost --spring.redis.hostocalhost --spring.redis.port=6379 > log.log 2>&1
+
+# 张三注册
+shell> curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+         "reqNo": "1234567890",
+         "timeStamp": 0,
+         "userName": "zhangsan"
+       }' 'http://localhost:8083/registerAccount'
+
+# 李四注册
+shell> curl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{
+         "reqNo": "1234567891",
+         "timeStamp": 0,
+         "userName": "lisi"
+       }' 'http://localhost:8083/registerAccount'
+
+# 张三登录 8084
+shell> java -jar target/cim-client-1.0.0-SNAPSHOT.jar --server.port=8084 --cim.user.id=1586428066079 --cim.user.userName=zhangsan --cim.group.route.request.url=http://localhost:8083/groupRoute --cim.server.route.request.url=http://localhost:8083/login 
+
+# 李四登录 8085
+shell> java -jar target/cim-client-1.0.0-SNAPSHOT.jar --server.port=8085 --cim.user.id=1586429421478 --cim.user.userName=lisi --cim.group.route.request.url=http://localhost:8083/groupRoute --cim.server.route.request.url=http://localhost:8083/login 
+#
+ 
+```
+
+
 
