@@ -36,6 +36,7 @@ public class CIMServerApplication implements CommandLineRunner {
         logger.info("开始执行commandLineRunner:", args);
         //获得本机IP
         String addr = InetAddress.getLocalHost().getHostAddress();
+//        String addr = "39.97.188.104";
         Thread thread = new Thread(new RegistryZK(addr, appConfiguration.getCimServerPort(), httpPort));
         thread.setName("registry-zk");
         thread.start();
