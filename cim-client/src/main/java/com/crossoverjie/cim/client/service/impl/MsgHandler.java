@@ -29,11 +29,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MsgHandler implements MsgHandle {
     private final static Logger LOGGER = LoggerFactory.getLogger(MsgHandler.class);
-    @Autowired
-    private RouteRequest routeRequest;
+    private final RouteRequest routeRequest;
 
-    @Autowired
-    private AppConfiguration configuration;
+    private final AppConfiguration configuration;
 
     @Resource(name = "callBackThreadPool")
     private ThreadPoolExecutor executor;
@@ -41,16 +39,21 @@ public class MsgHandler implements MsgHandle {
     @Autowired
     private CIMClient cimClient;
 
-    @Autowired
-    private MsgLogger msgLogger;
+    private final MsgLogger msgLogger;
 
-    @Autowired
-    private ClientInfo clientInfo;
+    private final ClientInfo clientInfo;
 
-    @Autowired
-    private InnerCommandContext innerCommandContext ;
+    private final InnerCommandContext innerCommandContext;
 
     private boolean aiModel = false;
+
+    public MsgHandler(RouteRequest routeRequest, AppConfiguration configuration, InnerCommandContext innerCommandContext, ClientInfo clientInfo, MsgLogger msgLogger) {
+        this.routeRequest = routeRequest;
+        this.configuration = configuration;
+        this.innerCommandContext = innerCommandContext;
+        this.clientInfo = clientInfo;
+        this.msgLogger = msgLogger;
+    }
 
     @Override
     public void sendMsg(String msg) {
@@ -132,7 +135,7 @@ public class MsgHandler implements MsgHandle {
         if (msg.startsWith(":")) {
 
             InnerCommand instance = innerCommandContext.getInstance(msg);
-            instance.process(msg) ;
+            instance.process(msg);
 
             return true;
 
@@ -170,7 +173,7 @@ public class MsgHandler implements MsgHandle {
 
     @Override
     public void closeAIModel() {
-        aiModel = false ;
+        aiModel = false;
     }
 
 }
