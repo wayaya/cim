@@ -298,5 +298,10 @@ shell> java -jar target/cim-client-1.0.0-SNAPSHOT.jar --server.port=8085 --cim.u
  
 ```
 
+bug
+心跳丢失后，自动退出登录
+
+定时更新im-server的注册地址信息
+
 
 
