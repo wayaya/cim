@@ -39,7 +39,7 @@ import javax.annotation.PostConstruct;
 @Component
 public class CIMClient {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(CIMClient.class);
+    private final static Logger logger = LoggerFactory.getLogger(CIMClient.class);
 
     private EventLoopGroup group = new NioEventLoopGroup(0, new DefaultThreadFactory("cim-work"));
 
@@ -51,28 +51,33 @@ public class CIMClient {
 
     private SocketChannel channel;
 
-    @Autowired
-    private EchoService echoService ;
+    private final EchoService echoService;
 
-    @Autowired
-    private RouteRequest routeRequest;
+    private final RouteRequest routeRequest;
 
-    @Autowired
-    private AppConfiguration configuration;
+    private final AppConfiguration configuration;
 
     @Autowired
     private MsgHandle msgHandle;
 
-    @Autowired
-    private ClientInfo clientInfo;
+    private final ClientInfo clientInfo;
 
     /**
      * 重试次数
      */
     private int errorCount;
 
+    public CIMClient(EchoService echoService, RouteRequest routeRequest, AppConfiguration configuration, ClientInfo clientInfo) {
+        logger.info("初始化客户端...");
+        this.echoService = echoService;
+        this.routeRequest = routeRequest;
+        this.configuration = configuration;
+        this.clientInfo = clientInfo;
+    }
+
     @PostConstruct
     public void start() throws Exception {
+        logger.info("客户端开始工作...");
 
         //登录 + 获取可以使用的服务器 ip+port
         CIMServerResVO.ServerInfo cimServer = userLogin();
@@ -106,14 +111,14 @@ public class CIMClient {
             errorCount++;
 
             if (errorCount >= configuration.getErrorCount()) {
-                LOGGER.error("连接失败次数达到上限[{}]次", errorCount);
+                logger.error("连接失败次数达到上限[{}]次", errorCount);
                 msgHandle.shutdown();
             }
-            LOGGER.error("连接失败", e);
+            logger.error("连接失败", e);
         }
         if (future.isSuccess()) {
             echoService.echo("start cim client success!");
-            LOGGER.info("启动 cim client 成功");
+            logger.info("启动 cim client 成功");
         }
         channel = (SocketChannel) future.channel();
     }
@@ -125,6 +130,7 @@ public class CIMClient {
      * @throws Exception
      */
     private CIMServerResVO.ServerInfo userLogin() {
+        logger.info("登录 userId:{},userName:{}", userId, userName);
         LoginReqVO loginReqVO = new LoginReqVO(userId, userName);
         CIMServerResVO.ServerInfo cimServer = null;
         try {
@@ -134,15 +140,15 @@ public class CIMClient {
             clientInfo.saveServiceInfo(cimServer.getIp() + ":" + cimServer.getCimServerPort())
                     .saveUserInfo(userId, userName);
 
-            LOGGER.info("cimServer=[{}]", cimServer.toString());
+            logger.info("cimServer=[{}]", cimServer.toString());
         } catch (Exception e) {
             errorCount++;
 
             if (errorCount >= configuration.getErrorCount()) {
-                LOGGER.error("重连次数达到上限[{}]次", errorCount);
+                logger.error("重连次数达到上限[{}]次", errorCount);
                 msgHandle.shutdown();
             }
-            LOGGER.error("login fail", e);
+            logger.error("login fail", e);
         }
         return cimServer;
     }
@@ -158,8 +164,8 @@ public class CIMClient {
                 .build();
         ChannelFuture future = channel.writeAndFlush(login);
         future.addListener((ChannelFutureListener) channelFuture ->
-                        echoService.echo("registry cim server success!")
-                );
+                echoService.echo("registry cim server success!")
+        );
     }
 
     /**
@@ -172,7 +178,7 @@ public class CIMClient {
         message.writeBytes(msg.getBytes());
         ChannelFuture future = channel.writeAndFlush(message);
         future.addListener((ChannelFutureListener) channelFuture ->
-                LOGGER.info("客户端手动发消息成功={}", msg));
+                logger.info("客户端手动发消息成功={}", msg));
 
     }
 
@@ -192,7 +198,7 @@ public class CIMClient {
 
         ChannelFuture future = channel.writeAndFlush(protocol);
         future.addListener((ChannelFutureListener) channelFuture ->
-                LOGGER.info("客户端手动发送 Google Protocol 成功={}", googleProtocolVO.toString()));
+                logger.info("客户端手动发送 Google Protocol 成功={}", googleProtocolVO.toString()));
 
     }
 
@@ -204,9 +210,9 @@ public class CIMClient {
         //首先清除路由信息，下线
         routeRequest.offLine();
 
-        LOGGER.info("reconnect....");
+        logger.info("reconnect....");
         start();
-        LOGGER.info("reconnect success");
+        logger.info("reconnect success");
     }
 
     /**
@@ -215,7 +221,7 @@ public class CIMClient {
      * @throws InterruptedException
      */
     public void close() throws InterruptedException {
-        if (channel != null){
+        if (channel != null) {
             channel.close();
         }
     }
